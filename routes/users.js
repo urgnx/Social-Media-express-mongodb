@@ -1,16 +1,18 @@
 const router = require("express").Router();
+const jwtCheckAuth = require("../middlewares/jwtCheckAuth");
+const isValidObjectId = require("../middlewares/isValidObjectId");
+const Follow = require("../models/Follow");
 const User = require("../models/user");
 
-router.get("/:id", async (req, res) => {
-  const user = await User.findById(req.params.id);
+router.get("/:id", isValidObjectId, async (req, res) => {
+  var user = await User.findById(req.params.id);
   !user && res.status(404).json({ message: "User not found" });
 
   var userResource = new (require("../resources/userResource"))(user);
-
-  res.status(200).json({ user: userResource });
+  return res.status(200).json({ user: userResource });
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", jwtCheckAuth, isValidObjectId, async (req, res) => {
   var user = await User.findById(req.params.id);
   !user && res.status(404).json({ message: "User not found" });
 
@@ -30,6 +32,26 @@ router.put("/:id", async (req, res) => {
     res.status(200).json({ user: user });
   } catch (err) {
     res.status(500).json({ error: err });
+  }
+});
+
+router.put("/:id/follow", jwtCheckAuth, isValidObjectId, async (req, res) => {
+  var user = await User.findById(req.params.id);
+  !user && res.status(404).json({ message: "User not found" });
+
+  try {
+    const follow = await new Follow({
+      followerId: req.body.followerId,
+      followedId: req.body.followedId,
+    });
+
+    await follow.save();
+    var followResource = new (require("../resources/followResource"))(follow);
+
+    res.status(200).json({ message: "Followed", follow: followResource });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "An error occurred" });
   }
 });
 

@@ -1,7 +1,10 @@
 const router = require("express").Router();
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
+// Generating secret key for jwt authentication:
+// const secret = require('crypto').randomBytes(64).toString('hex');
 router.post("/register", async (req, res) => {
   try {
     const salt = process.env.BCRYPT_SALT;
@@ -30,7 +33,13 @@ router.post("/login", async (req, res) => {
 
     !result && res.status(400).json({ message: "Invalid Credentials" });
 
-    res.status(200).json(user);
+    const username = user.username;
+
+    const token = jwt.sign({ user: user }, process.env.TOKEN_SECRET, {
+      expiresIn: "2h",
+    });
+    res.status(200).json({ token: token });
+    //res.status(200).json(user);
   } catch (err) {
     res.status(500).json(err);
   }

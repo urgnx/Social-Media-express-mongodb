@@ -6,6 +6,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const userRoute = require("./routes/users");
 const authRoute = require("./routes/auth");
+const jwtCheckAuth = require("./middlewares/jwtCheckAuth");
 
 dotenv.config();
 
